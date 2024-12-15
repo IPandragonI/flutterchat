@@ -1,13 +1,4 @@
 services:
-  node:
-    build: .
-    container_name: node
-    ports:
-      - "3000:3000"
-    depends_on:
-      - mongo
-    environment:
-      MONGO_URI: mongodb://mongo:27017/flutterchat
 
   mongo:
     container_name: mongo

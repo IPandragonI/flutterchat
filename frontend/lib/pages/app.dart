@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutterchat/pages/auth/login.dart';
 import 'package:flutterchat/pages/auth/waiting.dart';
 import 'package:provider/provider.dart';
 
@@ -20,7 +19,8 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             useMaterial3: true,
-            scaffoldBackgroundColor: Colors.blue
+            fontFamily: 'Montserrat',
+            scaffoldBackgroundColor: Colors.white,
           ),
           home: auth.isAuth
               ? Home()

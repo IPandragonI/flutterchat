@@ -3,16 +3,18 @@ import 'package:provider/provider.dart';
 
 import '../../providers/auth.dart';
 
-class Login extends StatefulWidget {
-  const Login({super.key});
+class SignUp extends StatefulWidget {
+  const SignUp({super.key});
 
   @override
-  _LoginState createState() => _LoginState();
+  _SignUpState createState() => _SignUpState();
 }
 
-class _LoginState extends State<Login> {
+class _SignUpState extends State<SignUp> {
   final GlobalKey<FormState> _formKey = GlobalKey();
   final Map<String, String> _authData = {
+    'firstname': '',
+    'lastname': '',
     'email': '',
     'password': '',
   };
@@ -21,18 +23,19 @@ class _LoginState extends State<Login> {
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('An Error Occurred!'),
-        content: Text(message),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Okay'),
-            onPressed: () {
-              Navigator.of(ctx).pop();
-            },
-          )
-        ],
-      ),
+      builder: (ctx) =>
+          AlertDialog(
+            title: const Text('An Error Occurred!'),
+            content: Text(message),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Okay'),
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                },
+              )
+            ],
+          ),
     );
   }
 
@@ -46,14 +49,16 @@ class _LoginState extends State<Login> {
     });
 
     try {
-      await Provider.of<Auth>(context, listen: false).login(
+      await Provider.of<Auth>(context, listen: false).signUp(
+        _authData['firstname']!,
+        _authData['lastname']!,
         _authData['email']!,
         _authData['password']!,
       );
       Navigator.pop(context);
     } catch (error) {
       const errorMessage = 'Authentication failed.';
-      _showErrorDialog(errorMessage);
+      _showErrorDialog(error.toString() != '' ? error.toString() : errorMessage);
     }
 
     setState(() {
@@ -65,6 +70,7 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        constraints: BoxConstraints(minHeight: double.infinity),
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage('images/wave.png'),
@@ -82,10 +88,25 @@ class _LoginState extends State<Login> {
                   child: Column(
                     children: <Widget>[
                       TextFormField(
+                        decoration: const InputDecoration(labelText: 'Firstname'),
+                        keyboardType: TextInputType.name,
+                        onSaved: (value) {
+                          _authData['firstname'] = value!;
+                        },
+                      ),
+                      TextFormField(
+                        decoration: const InputDecoration(labelText: 'Lastname'),
+                        keyboardType: TextInputType.name,
+                        onSaved: (value) {
+                          _authData['lastname'] = value!;
+                        },
+                      ),
+                      TextFormField(
                         decoration: const InputDecoration(labelText: 'E-Mail'),
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
-                          if ((value!.isEmpty || !value.contains('@')) && value != 'dev') {
+                          if ((value!.isEmpty || !value.contains('@')) &&
+                              value != 'dev') {
                             return 'Invalid email!';
                           }
                           return null;
@@ -113,7 +134,7 @@ class _LoginState extends State<Login> {
                       else
                         ElevatedButton(
                           onPressed: _submit,
-                          child: const Text('LOGIN'),
+                          child: const Text('SIGN UP'),
                         ),
                     ],
                   ),
@@ -125,4 +146,5 @@ class _LoginState extends State<Login> {
       ),
     );
   }
+
 }

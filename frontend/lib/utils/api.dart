@@ -1,4 +1,6 @@
 class Api{
-  static const String authUrl = 'http://localhost:3000/auth';
-  static const String userUrl = 'http://localhost:3000/users';
+  static const baseUrl = 'http://localhost:3000';
+  static const String authUrl = '$baseUrl/auth';
+  static const String usersUrl = '$baseUrl/users';
+  static const String discussionsUrl = '$baseUrl/discussions';
 }

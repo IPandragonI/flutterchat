@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
 import { DiscussionsService } from './discussions.services';
 
 @Controller('discussions')
@@ -6,8 +6,8 @@ export class DiscussionsController {
   constructor(private readonly discussionsService: DiscussionsService) {}
 
   @Post()
-  async createOrGetDiscussion(@Query('users') users: string[]) {
-    return await this.discussionsService.createOrGetDiscussion(users);
+  async createOrGetDiscussion(@Body('usersIds') usersIds: string[]) {
+    return await this.discussionsService.createOrGetDiscussion(usersIds);
   }
   @Get()
   async getAllDiscussions() {

@@ -18,12 +18,17 @@ class _NewDiscussionState extends State<NewDiscussion> {
   final TextEditingController _searchController = TextEditingController();
   List<UserModel> _users = [];
   List<UserModel> _filteredUsers = [];
+  final List<String> _selectedIds = [];
   bool _isLoading = true;
   bool _hasError = false;
 
   @override
   void initState() {
     super.initState();
+    final userId = Provider.of<Auth>(context, listen: false).user?['id'];
+    if(userId != null) {
+      _selectedIds.add(userId);
+    }
     _fetchUsers();
     _searchController.addListener(_filterUsers);
   }
@@ -59,6 +64,33 @@ class _NewDiscussionState extends State<NewDiscussion> {
         return fullName.contains(query);
       }).toList();
     });
+  }
+
+  void _toggleSelection(String userId) {
+    setState(() {
+      if (_selectedIds.contains(userId)) {
+        _selectedIds.remove(userId);
+      } else {
+        _selectedIds.add(userId);
+      }
+    });
+  }
+
+  Future<void> _createOrGetDiscussion() async {
+    try {
+      final response = await http.post(
+        Uri.parse(Api.discussionsUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'usersIds': _selectedIds}),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final discussion = json.decode(response.body);
+      } else {
+        throw Exception('Failed to create or get discussion');
+      }
+    } catch (e) {
+      throw Exception('Failed to call api');
+    }
   }
 
   @override
@@ -101,14 +133,22 @@ class _NewDiscussionState extends State<NewDiscussion> {
               itemCount: _filteredUsers.length,
               itemBuilder: (context, index) {
                 final user = _filteredUsers[index];
+                final isSelected = _selectedIds.contains(user.id);
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundImage: NetworkImage(user.profilePicture ?? ''),
                   ),
                   title: Text('${user.firstName} ${user.lastName}'),
                   subtitle: Text(user.email ?? ''),
+                  trailing: GestureDetector(
+                    onTap: () => _toggleSelection(user.id!),
+                    child: CircleAvatar(
+                      backgroundColor: isSelected ? Color.fromRGBO(64, 110, 255, 1) : Colors.grey,
+                      radius: 10,
+                    ),
+                  ),
                   onTap: () {
-                    // Add logic to start a new discussion
+                    _toggleSelection(user.id!);
                   },
                 );
               },
@@ -116,12 +156,19 @@ class _NewDiscussionState extends State<NewDiscussion> {
           ),
         ],
       ),
+      floatingActionButton: _selectedIds.length > 1
+          ? FloatingActionButton(
+        onPressed: _createOrGetDiscussion,
+        backgroundColor: Color.fromRGBO(64, 110, 255, 1),
+        child: const Icon(Icons.chat_rounded),
+      )
+          : null,
     );
   }
 
   Future<List<UserModel>> fetchUsers(String email) async {
     try {
-      final response = await http.get(Uri.parse('${Api.userUrl}/without?email=$email'));
+      final response = await http.get(Uri.parse('${Api.usersUrl}/without?email=$email'));
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         return data.map((e) => UserModel.fromJson(e)).toList();

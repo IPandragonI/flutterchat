@@ -65,7 +65,7 @@ class _AuthHomeState extends State<AuthHome> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        foregroundColor: Color.fromRGBO(64, 110, 255, 1),
+                        foregroundColor: Theme.of(context).primaryColor,
                         backgroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),

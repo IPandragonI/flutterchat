@@ -20,42 +20,22 @@ export class UsersService {
   }
 
   async getUsers() {
-    const users = await this.userModel.find().exec();
-    return users.map(user => ({
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      password: user.password,
-      profilePicture: user.profilePicture,
-    }));
+    return await this.userModel.find().exec();
   }
 
   async getUsersWithoutEmail(email: string) {
-    const users = await this.userModel.find({ email: { $ne: email } }).exec();
-    return users.map(user => ({
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      password: user.password,
-      profilePicture: user.profilePicture,
-    }));
+    return await this.userModel.find({ email: { $ne: email } }).exec();
+  }
+
+  async getUserById(userId: string) {
+    return await this.userModel.findById(userId).exec();
   }
 
   async getUser(email: string) {
-    const user = await this.userModel.findOne({ email });
-    return {
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      password: user.password,
-      profilePicture: user.profilePicture,
-    };
+    return await this.userModel.findOne({ email }).exec();
   }
 
-  async getUsersByIds(userIds: string[]): Promise<User[]> {
+  async getUsersByIds(userIds: string[]) {
     return await this.userModel.find({ _id: { $in: userIds } }).exec();
   }
 

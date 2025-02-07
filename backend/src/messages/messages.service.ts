@@ -1,14 +1,19 @@
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Message } from './message.model';
+import { UsersService } from '../users/users.service';
+
 
 export class MessagesService {
-  constructor(@InjectModel('Message') private readonly messageModel: Model<Message>) {
+  constructor(
+    @InjectModel('Message') private readonly messageModel: Model<Message>,
+    private readonly usersService: UsersService,
+  ) {
   }
 
-  async insertMessage(chatRoomId: string, content: string, sender: string) {
+  async insertMessage(discussionId: string, content: string, sender: string) {
     const newMessage = new this.messageModel({
-      chatRoomId,
+      discussionId,
       content,
       sender,
       date: new Date(),
@@ -18,15 +23,19 @@ export class MessagesService {
     return result.id as string;
   }
 
-  async getMessages(chatRoomId: string) {
-    const messages = await this.messageModel.find({ chatRoomId }).exec();
-    return messages.map(message => ({
-      id: message.id,
-      chatRoomId: message.chatRoomId,
-      content: message.content,
-      sender: message.sender,
-      date: message.date,
-      seenBy: message.seenBy,
+  async getAllMessagesFromDiscussion(discussionId: string) {
+    const messages = await this.messageModel.find({ discussionId }).exec();
+    return await Promise.all(messages.map(async (message) => {
+      const sender = this.usersService.getUserById(message.sender);
+      const seenBy = this.usersService.getUsersByIds(message.seenBy);
+      return {
+        id: message.id,
+        discussionId: message.discussionId,
+        content: message.content,
+        sender: sender,
+        date: message.date,
+        seenBy: seenBy,
+      };
     }));
   }
 }

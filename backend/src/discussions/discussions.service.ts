@@ -6,19 +6,20 @@ import { UsersService } from '../users/users.service';
 export class DiscussionsService {
   constructor(
     @InjectModel('Discussion') private readonly discussionModel: Model<Discussion>,
-    private readonly usersService: UsersService
-  ) {}
+    private readonly usersService: UsersService,
+  ) {
+  }
 
 
   async createOrGetDiscussion(usersIds: string[]) {
     const discussion = await this.discussionModel.findOne({
-      users: { $size: usersIds.length, $all: usersIds }
+      users: { $size: usersIds.length, $all: usersIds },
     }).exec();
 
     if (discussion) {
       return discussion;
     } else {
-      if(usersIds.length < 2) {
+      if (usersIds.length < 2) {
         throw new Error('Users must be at least 2');
       }
       const newDiscussion = new this.discussionModel({
@@ -46,13 +47,6 @@ export class DiscussionsService {
   }
 
   async getDiscussions() {
-    const discussions = await this.discussionModel.find().exec();
-    return discussions.map(discussion => ({
-      id: discussion.id,
-      title: discussion.title,
-      users: discussion.users,
-      lastMessage: discussion.lastMessage,
-      lastMessageDate: discussion.lastMessageDate,
-    }));
+    return await this.discussionModel.find().exec();
   }
 }

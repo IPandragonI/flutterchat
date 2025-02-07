@@ -89,7 +89,7 @@ class _NewDiscussionState extends State<NewDiscussion> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ChatRoom(chatRoomId: discussion['_id']),
+            builder: (context) => ChatRoom(discussion: discussion),
           ),
         );
       } else {
@@ -104,9 +104,8 @@ class _NewDiscussionState extends State<NewDiscussion> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nouvelle discussion'),
-        centerTitle: true,
-        backgroundColor: Color.fromRGBO(64, 110, 255, 1),
+        title: Text('Nouvelle discussion'),
+        backgroundColor: Theme.of(context).primaryColor,
       ),
       body: Column(
         children: [
@@ -150,7 +149,7 @@ class _NewDiscussionState extends State<NewDiscussion> {
                   trailing: GestureDetector(
                     onTap: () => _toggleSelection(user.id!),
                     child: CircleAvatar(
-                      backgroundColor: isSelected ? Color.fromRGBO(64, 110, 255, 1) : Colors.grey,
+                      backgroundColor: isSelected ? Theme.of(context).primaryColor : Colors.grey,
                       radius: 10,
                     ),
                   ),
@@ -166,7 +165,7 @@ class _NewDiscussionState extends State<NewDiscussion> {
       floatingActionButton: _selectedIds.length > 1
           ? FloatingActionButton(
         onPressed: _createOrGetDiscussion,
-        backgroundColor: Color.fromRGBO(64, 110, 255, 1),
+        backgroundColor: Theme.of(context).primaryColor,
         child: const Icon(Icons.chat_rounded),
       )
           : null,

@@ -3,7 +3,7 @@ import { Model } from 'mongoose';
 
 import { User } from './user.model';
 
-export class UsersServices {
+export class UsersService {
   constructor(@InjectModel('User') private readonly userModel: Model<User>) {
   }
 
@@ -53,6 +53,10 @@ export class UsersServices {
       password: user.password,
       profilePicture: user.profilePicture,
     };
+  }
+
+  async getUsersByIds(userIds: string[]): Promise<User[]> {
+    return await this.userModel.find({ _id: { $in: userIds } }).exec();
   }
 
   async checkUserAlreadyExists(email: string) {

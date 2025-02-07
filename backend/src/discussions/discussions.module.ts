@@ -3,13 +3,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { DiscussionSchema } from './discussion.model';
 import { DiscussionsController } from './discussions.controller';
-import { DiscussionsService } from './discussions.services';
+import { DiscussionsService } from './discussions.service';
+import { UsersModule } from '../users/users.module';
+import { UsersService } from '../users/users.service';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: 'Discussion', schema: DiscussionSchema }])],
+  imports: [UsersModule, MongooseModule.forFeature([{ name: 'Discussion', schema: DiscussionSchema }])],
   controllers: [DiscussionsController],
-  providers: [DiscussionsService],
+  providers: [DiscussionsService, UsersService],
   exports: [MongooseModule],
 })
-export class DiscussionsModule {
-}
+export class DiscussionsModule {}

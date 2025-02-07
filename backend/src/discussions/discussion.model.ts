@@ -1,7 +1,6 @@
 import * as mongoose from 'mongoose';
 
 export const DiscussionSchema = new mongoose.Schema({
-  chatRoomId: { type: String, required: true },
   title: { type: String, required: false },
   users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   lastMessage: { type: String, required: false },
@@ -10,7 +9,6 @@ export const DiscussionSchema = new mongoose.Schema({
 
 export interface Discussion extends mongoose.Document {
   id: string;
-  chatRoomId: string;
   title: string;
   users: string[];
   lastMessage: string;

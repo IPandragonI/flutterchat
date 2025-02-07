@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import '../../providers/auth.dart';
+import 'chatRoom.dart';
 
 class NewDiscussion extends StatefulWidget {
   const NewDiscussion({super.key});
@@ -85,6 +86,12 @@ class _NewDiscussionState extends State<NewDiscussion> {
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         final discussion = json.decode(response.body);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatRoom(chatRoomId: discussion['_id']),
+          ),
+        );
       } else {
         throw Exception('Failed to create or get discussion');
       }

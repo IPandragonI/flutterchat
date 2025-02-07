@@ -1,11 +1,11 @@
 import { Controller, Post, Body } from '@nestjs/common';
-import { AuthenticationServices } from './authentication.services';
+import { AuthenticationService } from './authentication.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { AuthCredentialsLoginDto } from './dto/auth-credentials-login.dto';
 
 @Controller('auth')
 export class AuthenticationController {
-  constructor(private readonly authService: AuthenticationServices) {}
+  constructor(private readonly authService: AuthenticationService) {}
 
   @Post('signup')
   async signUp(@Body() authCredentialsDto: AuthCredentialsDto): Promise<void> {

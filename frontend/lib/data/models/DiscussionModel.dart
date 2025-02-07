@@ -1,54 +1,51 @@
 import 'package:flutterchat/data/models/UserModel.dart';
 
 class DiscussionModel {
-  String? _chatRoomId;
+  String? _id;
   String? _title;
   List<UserModel>? _users;
   String? _lastMessage;
-  DateTime? _lastMessageTime;
+  DateTime? _lastMessageDate;
 
   DiscussionModel({
-    String? chatRoomId,
+    String? id,
     String? title,
     List<UserModel>? users,
     String? lastMessage,
-    DateTime? lastMessageTime,
+    DateTime? lastMessageDate,
   }) {
-    _chatRoomId = chatRoomId;
+    _id = id;
     _title = title;
     _users = users;
     _lastMessage = lastMessage;
-    _lastMessageTime = lastMessageTime;
+    _lastMessageDate = lastMessageDate;
   }
 
-  String? get chatRoomId => _chatRoomId;
+  String? get id => _id;
   String? get title => _title;
   List<UserModel>? get users => _users;
   String? get lastMessage => _lastMessage;
-  DateTime? get lastMessageTime => _lastMessageTime;
+  DateTime? get lastMessageDate => _lastMessageDate;
 
   DiscussionModel.fromJson(Map<String, dynamic> json) {
-    _chatRoomId = json['chatRoomId'];
+    _id = json['id'];
     _title = json['title'];
     if (json['users'] != null) {
-      _users = [];
-      json['users'].forEach((v) {
-        _users!.add(UserModel.fromJson(v));
-      });
+      _users = (json['users'] as List).map((i) => UserModel.fromJson(i)).toList();
     }
     _lastMessage = json['lastMessage'];
-    _lastMessageTime = DateTime.parse(json['lastMessageTime']);
+    _lastMessageDate = json['lastMessageDate'] != null ? DateTime.parse(json['lastMessageDate']) : null;
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['chatRoomId'] = _chatRoomId;
+    data['id'] = _id;
     data['title'] = _title;
     if (_users != null) {
       data['users'] = _users!.map((v) => v.toJson()).toList();
     }
     data['lastMessage'] = _lastMessage;
-    data['lastMessageTime'] = _lastMessageTime!.toIso8601String();
+    data['lastMessageDate'] = _lastMessageDate!.toIso8601String();
     return data;
   }
 }

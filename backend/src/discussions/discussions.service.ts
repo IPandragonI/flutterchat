@@ -17,7 +17,14 @@ export class DiscussionsService {
     }).exec();
 
     if (discussion) {
-      return discussion;
+      const users = await this.usersService.getUsersByIds(discussion.users);
+      return {
+        id: discussion.id,
+        title: discussion.title,
+        users: users,
+        lastMessage: discussion.lastMessage,
+        lastMessageDate: discussion.lastMessageDate,
+      };
     } else {
       if (usersIds.length < 2) {
         throw new Error('Users must be at least 2');

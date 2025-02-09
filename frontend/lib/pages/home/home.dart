@@ -29,14 +29,12 @@ class _HomeState extends State<Home> {
 
   Future<void> _fetchDiscussions() async {
     try {
-      final userId = Provider.of<Auth>(context, listen: false).user?['id'];
-      final response = await http
-          .get(Uri.parse('${Api.discussionsUrl}/user?userId=$userId'));
+      final userId = Provider.of<Auth>(context, listen: false).user?['_id'];
+      final response = await http.get(Uri.parse('${Api.discussionsUrl}/user?userId=$userId'));
       if (response.statusCode == 200) {
         final discussions = jsonDecode(response.body) as List;
         setState(() {
-          _discussions =
-              discussions.map((e) => DiscussionModel.fromJson(e)).toList();
+          _discussions = discussions.map((e) => DiscussionModel.fromJson(e)).toList();
           _isLoading = false;
         });
       } else {
@@ -126,7 +124,7 @@ class _HomeState extends State<Home> {
                                       ? null
                                       : NetworkImage(discussion.users!
                                               .firstWhere(
-                                                  (u) => u.id != user?['id'])
+                                                  (u) => u.id != user?['_id'])
                                               .profilePicture ??
                                           ''),
                                 ),
@@ -134,7 +132,7 @@ class _HomeState extends State<Home> {
                                     ? Text(discussion.title ?? '')
                                     : isGroup
                                         ? Text(discussion.users!.map((u) => '${u.firstName}').join(', '))
-                                        : Text('${discussion.users!.firstWhere((u) => u.id != user?['id']).firstName} ${discussion.users!.firstWhere((u) => u.id != user?['id']).lastName}'),
+                                        : Text('${discussion.users!.firstWhere((u) => u.id != user?['_id']).firstName} ${discussion.users!.firstWhere((u) => u.id != user?['id']).lastName}'),
                                 subtitle: Text(discussion.lastMessage ?? ''),
                                 onTap: () {
                                   Navigator.push(

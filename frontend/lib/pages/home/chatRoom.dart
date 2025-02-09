@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutterchat/data/models/DiscussionModel.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../data/models/DiscussionModel.dart';
 import '../../data/models/MessageModel.dart';
 import '../../providers/auth.dart';
 import '../../utils/api.dart';
@@ -17,63 +18,69 @@ class ChatRoom extends StatefulWidget {
 }
 
 class _ChatRoomState extends State<ChatRoom> {
-  List<MessageModel> _messages = [];
-  bool _isLoading = true;
-  bool _hasError = false;
   final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final List<MessageModel> _messages = [];
+  late IO.Socket _socket;
 
   @override
   void initState() {
     super.initState();
+    _socket = IO.io(Api.baseUrl, <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': false,
+    });
+
+    _socket.on('receiveMessage', (data) {
+      final message = MessageModel.fromJson(data);
+      setState(() {
+        _messages.add(message);
+      });
+      scrollToBottom();
+    });
+
+    _socket.connect();
     _fetchMessages();
   }
 
   Future<void> _fetchMessages() async {
-    try {
-      final response = await http.get(Uri.parse('${Api.messagesUrl}?discussionId=${widget.discussion.id}'));
-      if (response.statusCode == 200) {
-        final messages = jsonDecode(response.body) as List;
-        setState(() {
-          if (messages.isNotEmpty) {
-            _messages = messages.map((e) => MessageModel.fromJson(e)).toList();
-          }
-          _isLoading = false;
-        });
-      } else {
-        throw Exception('Failed to fetch messages');
-      }
-    } catch (e) {
+    final response = await http.get(
+        Uri.parse('${Api.messagesUrl}?discussionId=${widget.discussion.id}'));
+    if (response.statusCode == 200) {
+      final List<dynamic> messageList = jsonDecode(response.body);
       setState(() {
-        _isLoading = false;
-        _hasError = true;
+        _messages.addAll(messageList.map((e) => MessageModel.fromJson(e)).toList());
       });
+      scrollToBottom();
     }
+  }
+
+  @override
+  void dispose() {
+    _socket.disconnect();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _sendMessage() async {
     final user = Provider.of<Auth>(context, listen: false).user;
     if (_messageController.text.isEmpty) return;
 
-    try {
-      final response = await http.post(
-        Uri.parse(Api.messagesUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'discussionId': widget.discussion.id,
-          'content': _messageController.text,
-          'sender': user?['id'],
-        }),
-      );
+    final message = {
+      'discussionId': widget.discussion.id,
+      'content': _messageController.text,
+      'sender': user?['_id'],
+    };
 
-      if (response.statusCode == 201) {
-        _messageController.clear();
-        _fetchMessages();
-      } else {
-        throw Exception('Failed to send message');
-      }
-    } catch (e) {
-      // Handle error
-    }
+    _socket.emit('sendMessage', message);
+    _messageController.clear();
+    scrollToBottom();
+  }
+
+  void scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
   }
 
   @override
@@ -92,18 +99,23 @@ class _ChatRoomState extends State<ChatRoom> {
         title: widget.discussion.title != ''
             ? Text(widget.discussion.title ?? '')
             : isGroup
-            ? Text(widget.discussion.users!.map((u) => '${u.firstName}').join(', '))
-            : Text('${widget.discussion.users!.firstWhere((u) => u.id != user?['id']).firstName} ${widget.discussion.users!.firstWhere((u) => u.id != user?['id']).lastName}'),
+            ? Text(widget.discussion.users!
+            .map((u) => '${u.firstName}')
+            .join(', '))
+            : Text(
+            '${widget.discussion.users!.firstWhere((u) => u.id != user?['_id']).firstName} ${widget.discussion.users!.firstWhere((u) => u.id != user?['id']).lastName}'),
       ),
       body: Container(
         constraints: BoxConstraints(minHeight: double.infinity),
         child: Column(
           children: <Widget>[
             Expanded(
-              child: ListView(
-                children: <Widget>[
-                  const Text('Messages'),
-                ],
+              child: ScrollConfiguration(
+                behavior: ScrollBehavior().copyWith(overscroll: false, scrollbars: false),
+                child: ListView(
+                  controller: _scrollController,
+                  children: _messages.map((message) => _buildMessageItem(message)).toList(),
+                ),
               ),
             ),
             Container(
@@ -114,6 +126,7 @@ class _ChatRoomState extends State<ChatRoom> {
                   Expanded(
                     child: TextField(
                       controller: _messageController,
+                      onSubmitted: (value) => _sendMessage(),
                       decoration: InputDecoration(
                         hintText: 'Écrire un message',
                         filled: true,
@@ -141,6 +154,53 @@ class _ChatRoomState extends State<ChatRoom> {
             )
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMessageItem(MessageModel message) {
+    final user = Provider.of<Auth>(context).user;
+    final isSender = message.sender?.id == user?['_id'];
+    final alignment = isSender ? Alignment.centerRight : Alignment.centerLeft;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(
+            alignment: alignment,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.0,
+                vertical: 8.0,
+              ),
+              decoration: BoxDecoration(
+                color: isSender ? Colors.blue : Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(30.0),
+              ),
+              child: Text(
+                message.content ?? '',
+                style: TextStyle(
+                  color: isSender ? Colors.white : Colors.black,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4.0),
+          Container(
+            alignment: alignment,
+            child: Text(
+              message.date != null
+                  ? '${message.date!.hour}:${message.date!.minute}'
+                  : '',
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 12.0,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

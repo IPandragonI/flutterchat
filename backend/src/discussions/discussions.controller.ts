@@ -5,18 +5,17 @@ import { DiscussionsService } from './discussions.service';
 export class DiscussionsController {
   constructor(private readonly discussionsService: DiscussionsService) {}
 
-  @Post()
-  async createOrGetDiscussion(@Body('usersIds') usersIds: string[]) {
-    return await this.discussionsService.createOrGetDiscussion(usersIds);
+  @Get()
+  async getAllDiscussions() {
+    return await this.discussionsService.getDiscussions();
   }
-
   @Get('user')
   async getDiscussionsOfUser(@Query('userId') userId: string) {
     return await this.discussionsService.getDiscussionsOfUser(userId);
   }
 
-  @Get()
-  async getAllDiscussions() {
-    return await this.discussionsService.getDiscussions();
+  @Post()
+  async createOrGetDiscussion(@Body('usersIds') usersIds: string[]) {
+    return await this.discussionsService.createOrGetDiscussion(usersIds);
   }
 }

@@ -10,6 +10,11 @@ export class UsersController {
     return await this.usersService.getUsers();
   }
 
+  @Get('user')
+  async getUserById(@Query('userId') userId: string) {
+    return await this.usersService.getUserById(userId);
+  }
+
   @Get('without')
   async getUsersWithoutEmail(@Query('email') email: string) {
     return await this.usersService.getUsersWithoutEmail(email);

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../../data/models/DiscussionModel.dart';
 import '../../providers/auth.dart';
 import 'chatRoom.dart';
 
@@ -26,7 +27,7 @@ class _NewDiscussionState extends State<NewDiscussion> {
   @override
   void initState() {
     super.initState();
-    final userId = Provider.of<Auth>(context, listen: false).user?['id'];
+    final userId = Provider.of<Auth>(context, listen: false).user?['_id'];
     if(userId != null) {
       _selectedIds.add(userId);
     }
@@ -85,7 +86,7 @@ class _NewDiscussionState extends State<NewDiscussion> {
         body: json.encode({'usersIds': _selectedIds}),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final discussion = json.decode(response.body);
+        final discussion = DiscussionModel.fromJson(json.decode(response.body));
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(

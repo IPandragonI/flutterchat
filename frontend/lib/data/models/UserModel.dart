@@ -26,7 +26,7 @@ class UserModel {
   String? get profilePicture => _profilePicture;
 
   UserModel.fromJson(Map<String, dynamic> json) {
-    _id = json['id'];
+    _id = json['_id'];
     _firstName = json['firstName'];
     _lastName = json['lastName'];
     _email = json['email'];
